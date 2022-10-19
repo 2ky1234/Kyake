@@ -2,55 +2,23 @@ import os
 from konlpy.tag import Komoran
 komoran = Komoran()
 
-def split_sentences(text):
-    text_value = []
-
-    from regex import compile, DOTALL, UNICODE, VERBOSE
-    _compile = lambda count: compile(SEGMENTER_REGEX.format(count), UNICODE | VERBOSE)
-    SENTENCE_TERMINALS = '.!?\u203C\u203D\u2047\u2048\u2049\u3002' \
-                        '\uFE52\uFE57\uFF01\uFF0E\uFF1F\uFF61'
-    "The list of valid Unicode sentence terminal characters."
-    SEGMENTER_REGEX = r"""
-    (                       # A sentence ends at one of two sequences:
-        [%s]                # Either, a sequence starting with a sentence terminal,
-        [\'\u2019\"\u201D]? # an optional right quote,
-        [\]\)]*             # optional closing brackets and
-        \s+                 # a sequence of required spaces.
-    |                       # Otherwise,
-        \n{{{},}}           # a sentence also terminates at [consecutive] newlines.
-    )""" % SENTENCE_TERMINALS
-    #SHORT_SENTENCE_LENGTH = 55
-    #short_sentence_length = SHORT_SENTENCE_LENGTH
-    "Length of either sentence fragment inside brackets to assume the fragment is not its own sentence."
-    # Define that two or more line-breaks split sentences:
-    MAY_CROSS_ONE_LINE = _compile(2)
-    "A segmentation pattern where two or more newline chars also terminate sentences."
-    # This can be increased/decreased to heighten/lower the likelihood of splits inside brackets.
+# stopword.txt 읽어오기 위한 path 및 파일이름
+language = 'ko'
+path = 'yake/StopwordsList/'
+txt = '/stopwords_{}.txt'.format(language)
 
 
-    for s in MAY_CROSS_ONE_LINE.split(text):
-        if len(s.strip()) > 1:
-            text_value.append(s.split(' '))
+try:
+    f = open(path + txt, encoding='UTF-8')
+    ExistStopwords = set(f.read().split())
+except FileNotFoundError:
+    ExistStopwords = [None]
 
-    
-    return text_value
+ExistStopwords = list(ExistStopwords)
+f.close()
 
-def split_multi(text):
-    # stopword.txt 읽어오기 위한 path 및 파일이름
-    language = 'ko'
-    path = 'C:/Users/BIG-LGY/Documents/GitHub/pke_u/yake_korea_ver/yake/StopwordsList/'
-    txt = '/stopwords_{}.txt'.format(language)
 
-    try:
-        f = open(path + txt, encoding='UTF-8')
-        ExistStopwords = set(f.read().split())
-    except FileNotFoundError:
-        ExistStopwords = [None]
-
-    ExistStopwords = list(ExistStopwords)
-    f.close()
-
-    # text_list = text.split()
+def edit_sentences(text):
 
     SpecialToken = r"""#"$%&'‘“()*+,-/:;<=>[\]^_`{|}~"""
     exclude = set(SpecialToken)
@@ -82,7 +50,43 @@ def split_multi(text):
 
     token_list = str2token(token_list)
     token_list = ' '.join(token_list)
-    text_list = token_list.split()
+
+
+    text_value = []
+
+    from regex import compile, DOTALL, UNICODE, VERBOSE
+    _compile = lambda count: compile(SEGMENTER_REGEX.format(count), UNICODE | VERBOSE)
+    SENTENCE_TERMINALS = '.!?\u203C\u203D\u2047\u2048\u2049\u3002' \
+                        '\uFE52\uFE57\uFF01\uFF0E\uFF1F\uFF61'
+    "The list of valid Unicode sentence terminal characters."
+    SEGMENTER_REGEX = r"""
+    (                       # A sentence ends at one of two sequences:
+        [%s]                # Either, a sequence starting with a sentence terminal,
+        [\'\u2019\"\u201D]? # an optional right quote,
+        [\]\)]*             # optional closing brackets and
+        \s+                 # a sequence of required spaces.
+    |                       # Otherwise,
+        \n{{{},}}           # a sentence also terminates at [consecutive] newlines.
+    )""" % SENTENCE_TERMINALS
+    #SHORT_SENTENCE_LENGTH = 55
+    #short_sentence_length = SHORT_SENTENCE_LENGTH
+    "Length of either sentence fragment inside brackets to assume the fragment is not its own sentence."
+    # Define that two or more line-breaks split sentences:
+    MAY_CROSS_ONE_LINE = _compile(2)
+    "A segmentation pattern where two or more newline chars also terminate sentences."
+    # This can be increased/decreased to heighten/lower the likelihood of splits inside brackets.
+
+
+    for s in MAY_CROSS_ONE_LINE.split(token_list):
+        if len(s.strip()) > 1:
+            text_value.append(s.split(' '))
+
+    # text_list = text.split()
+
+    return text_value
+
+def edit_josa(text):
+    token_list = []
 
     # 조사 제거
     def deljosa(word:str):
@@ -115,7 +119,7 @@ def split_multi(text):
         nano = []
         isstopword = []
 
-        for i in text_list:    
+        for i in text:    
             # 1. N + N
             if komoran.pos(i)[0][1] in ['NNG','NNP','NNB','NR','NP']:
                 if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['NNG','NNP','NNB','NR','NP']:
@@ -219,14 +223,11 @@ def split_multi(text):
 
         return nano
 
-    if type(text) is not str:
-        token_list = list2str(text)
-    elif type(text) is str:
-        token_list = text
 
-    token_list = str2token(token_list)
-    token_list = ' '.join(token_list)
-    token_list = split_text(token_list)
+    for x in range(len(text)):
+        for y in text[x]:
+            token_list.append(split_text(y))
+    token_list = split_text(text)
 
     return token_list
 
