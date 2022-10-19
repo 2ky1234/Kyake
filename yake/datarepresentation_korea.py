@@ -2,7 +2,7 @@ from segtok.segmenter import split_multi
 from segtok.tokenizer import web_tokenizer, split_contractions
 # from .korea_token import RawTextReader
 # parser = RawTextReader()
-from .korea_token import edit_josa, edit_sentences
+from .korea_token import split_multi, split_sentences
 import networkx as nx
 import numpy as np
 import string
@@ -60,11 +60,11 @@ class DataCore(object):
         #test_value = list(split_multi(text))
         #test_value =  [ [w for w in split_contractions(web_tokenizer(s)) if not (w.startswith("'") and len(w) > 1) and len(w) > 0] for s in list(split_multi(text)) if len(s.strip()) > 0]
         # 다른 py 파일에서 import로 활용하면 OK
-        new_text = edit_sentences(text)
+        new_text = split_sentences(text)
         print('원본 split_sentences :', new_text)
         total_value = []
-        for x in range(len(new_text)):
-        total_value.append(edit_josa(new_text[x]))
+        for w in range(len(new_text)):
+            total_value.append(split_multi(' '.join(new_text[w])))
         self.sentences_str = total_value
 
         print('변경 후 결과 initial input : ',self.sentences_str)
