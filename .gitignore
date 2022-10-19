@@ -1,0 +1,3 @@
+# pyc file dont upload
+*.pyc
+.env
