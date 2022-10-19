@@ -64,7 +64,7 @@ class DataCore(object):
         print('원본 split_sentences :', new_text)
         total_value = []
         for x in range(len(new_text)):
-        total_value.append(edit_josa(new_text[x]))
+            total_value.append(edit_josa(new_text[x]))
         self.sentences_str = total_value
 
         print('변경 후 결과 initial input : ',self.sentences_str)
@@ -94,6 +94,7 @@ class DataCore(object):
                                 self.addCooccur(block_of_word_obj[w][2], term_obj)
                     #Generate candidate keyphrase list
                     candidate = [ (tag, word, term_obj) ]
+                    print('candidate 테스트 :',candidate,term_obj.H)
                     cand = composed_word(candidate)
                     self.addOrUpdateComposedWord(cand)
                     word_windows = list(range( max(0, len(block_of_word_obj)-(n-1)), len(block_of_word_obj) ))[::-1]
@@ -120,7 +121,9 @@ class DataCore(object):
 
         self.number_of_words = pos_text
         #최종적으로 원본으로 되돌리는 코드 넣기
-
+        print('최종 self.sentences_str :', self.sentences_str)
+        #print('최종 self.candidates :', self.candidates)
+        
     def build_single_terms_features(self, features=None):
         validTerms = [ term for term in self.terms.values() if not term.stopword ]
         validTFs = (np.array([ x.tf for x in validTerms ]))
