@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from yake import yake
 from yake.datarepresentation_korea import DataCore
 import pandas as pd
