@@ -66,6 +66,7 @@ class KeywordExtractor(object):
 
             text = text.replace('\n\t',' ')
             dc = DataCore(text=text, stopword_set=self.stopword_set, windowsSize=self.windowsSize, n=self.n)
+            #print('dc.sentences_str 테스트 :',dc.sentences_str)
             dc.build_single_terms_features(features=self.features)
             dc.build_mult_terms_features(features=self.features)
             resultSet = []
@@ -78,8 +79,8 @@ class KeywordExtractor(object):
                 toadd = True
                 for (h, candResult) in resultSet:
                     dist = self.dedu_function(cand.unique_kw, candResult.unique_kw)
-                    print('좌 cand, 우 candResult :',cand.unique_kw," / ",candResult.unique_kw)
-                    print('dist 테스트 :',dist)
+                    # print('좌 cand, 우 candResult :',cand.unique_kw," / ",candResult.unique_kw)
+                    # print('dist 테스트 :',dist)
                     if dist > self.dedupLim:
                         toadd = False
                         break

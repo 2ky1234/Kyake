@@ -32,6 +32,7 @@ def split_sentences(text):
         if len(s.strip()) > 1:
             text_value.append(s.split(' '))
 
+    
     return text_value
 
 def split_multi(text):
@@ -53,7 +54,6 @@ def split_multi(text):
 
     SpecialToken = r"""#"$%&'‘“()*+,-/:;<=>[\]^_`{|}~"""
     exclude = set(SpecialToken)
-
     # list로 주어지면 합쳐서 str 문자열로 전환 함수
     def list2str(TokenList):
         NewTokenList = []
@@ -197,7 +197,7 @@ def split_multi(text):
             # 10. stopwords
             elif komoran.pos(i)[0][1] not in ['NNG','NNP','NNB','NR','NP', 'VV', 'VA', 'VX', 'VC', 'XPN', 'XR', 'MM', 'NA', 'SL', 'SH', 'SN', 'SF', 'SP', 'SS', 'SE', 'SO', 'SW']:
                 isstopword.append(komoran.pos(i)[0][0])
-            
+                nano.append(komoran.pos(i)[0][0])
             # 11. 나머지
             else :
                 nano.append(komoran.pos(i)[0][0])
