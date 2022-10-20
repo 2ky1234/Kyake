@@ -11,7 +11,7 @@ import pandas as pd
 text = "키릴로 티모셴코 대통령실 차장은 텔레그램을 통해 중대 기반 시설들에 자폭 드론을 동원한 또 다른 공격이 있었다고 말했다. 그는 공격을 받은 기반 시설이 어디인지는 언급하지 않았다.우크라이나 당국에 따르면, 우크라이나에서는 최근 몇주째 이란제 샤헤드-136 드론을 이용한 러시아군의 공격이 이어지고 있다. 이란은 러시아에 자국산 드론을 공급했다는 것을 부인하고 있다."
 kw_extractor = yake.KeywordExtractor(stopwords='ko', top=50)
 #DataCore(text=text, stopword_set=[], windowsSize=1, n=3)
-keywords = kw_extractor.extract_keywords(text)
+keywords = kw_extractor.extract_keywords(text, COpy=False)
 
 for kw in keywords[:50]:
  	print(kw)
