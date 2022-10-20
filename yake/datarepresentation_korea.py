@@ -29,6 +29,7 @@ class DataCore(object):
         for i in range(n):
             self.freq_ns[i+1] = 0.
         self.stopword_set = stopword_set
+        self.raw_sentences_str = [] # raw값으로 n-gram 만들기 위한 변수
         self._build(text, windowsSize, n)
 
     def build_candidate(self, candidate_string):
@@ -61,6 +62,7 @@ class DataCore(object):
         #test_value =  [ [w for w in split_contractions(web_tokenizer(s)) if not (w.startswith("'") and len(w) > 1) and len(w) > 0] for s in list(split_multi(text)) if len(s.strip()) > 0]
         # 다른 py 파일에서 import로 활용하면 OK
         new_text = edit_sentences(text)
+        self.raw_sentences_str = new_text
         print('원본 split_sentences :', new_text)
         total_value = []
         for x in range(len(new_text)):
@@ -72,6 +74,7 @@ class DataCore(object):
         pos_text = 0
         block_of_word_obj = []
         sentence_obj_aux = []
+        
         for (sentence_id, sentence) in enumerate(self.sentences_str):
             sentence_obj_aux = []
             block_of_word_obj = []
@@ -84,8 +87,7 @@ class DataCore(object):
                     tag = self.getTag(word, pos_sent)
                     term_obj = self.getTerm(word)
                     term_obj.addOccur(tag, sentence_id, pos_sent, pos_text)
-                    pos_text += 1
-
+                    pos_text += 1                                         
                     #Create co-occurrence matrix
                     if tag not in self.tagsToDiscard:
                         word_windows = list(range( max(0, len(block_of_word_obj)-windowsSize), len(block_of_word_obj) ))
@@ -93,20 +95,23 @@ class DataCore(object):
                             if block_of_word_obj[w][0] not in self.tagsToDiscard: 
                                 self.addCooccur(block_of_word_obj[w][2], term_obj)
                     #Generate candidate keyphrase list
-                    candidate = [ (tag, word, term_obj) ]
-                    print('candidate 테스트 :',candidate,term_obj.H)
+                    candidate = [ (tag, self.raw_sentences_str[sentence_id][pos_sent], term_obj) ]
+                    #print('candidate 테스트 :',candidate,candidate[0][2].H) # H가 0인상태
+                    # 이곳 변경해보자
                     cand = composed_word(candidate)
-                    self.addOrUpdateComposedWord(cand)
+                    #print('cand 테스트 :',cand.terms[0].unique_term) # H가 0인상태
+                    self.addOrUpdateComposedWord(cand)           
                     word_windows = list(range( max(0, len(block_of_word_obj)-(n-1)), len(block_of_word_obj) ))[::-1]
                     for w in word_windows:
                         candidate.append(block_of_word_obj[w])
                         self.freq_ns[len(candidate)] += 1.
                         cand = composed_word(candidate[::-1])
                         self.addOrUpdateComposedWord(cand)
-
                     # Add term to the block of words' buffer
-                    block_of_word_obj.append( (tag, word, term_obj) )
-
+                    #print('word테스트 2번 :',word)
+                    block_of_word_obj.append( (tag, self.raw_sentences_str[sentence_id][pos_sent], term_obj) )
+                    
+                    #print('block_of_word_obj 테스트 :',block_of_word_obj,block_of_word_obj[0][2].H) # H가 0인 상태
             if len(block_of_word_obj) > 0:
                 sentence_obj_aux.append( block_of_word_obj )
 
@@ -121,10 +126,12 @@ class DataCore(object):
 
         self.number_of_words = pos_text
         #최종적으로 원본으로 되돌리는 코드 넣기
-        print('최종 self.sentences_str :', self.sentences_str)
-        #print('최종 self.candidates :', self.candidates)
+        #print("self.sentences 실험 테스트 :", self.sentences_str)
+        #print("self.sentences_obj 실험 테스트 :", self.sentences_obj)
+        #print("self.terms 실험 테스트 :", self.terms, list(self.terms.values())[0].H) # H값 없음
         
     def build_single_terms_features(self, features=None):
+        #print('build_single_terms_features의 self.sentences_obj 테스트 :', self.sentences_obj)
         validTerms = [ term for term in self.terms.values() if not term.stopword ]
         validTFs = (np.array([ x.tf for x in validTerms ]))
 
@@ -135,10 +142,16 @@ class DataCore(object):
         stdTF = validTFs.std()
         maxTF = max([ x.tf for x in self.terms.values()])
         list(map(lambda x: x.updateH(maxTF=maxTF, avgTF=avgTF, stdTF=stdTF, number_of_sentences=self.number_of_sentences, features=features), self.terms.values()))
-
+        #print("self.terms 실험 테스트 :", self.terms, list(self.terms.values())[7].H) # H값 있음 !!
+        #self.terms =  { k+'테스트': v for k, v in self.terms.items() } # self.terms는 변경해도 최종 결과 변경X
+        #list(self.terms.values())[0].unique_term = '키릴테스트' # 변경해도 안바뀜 
+        #print("self.terms 실험 테스트 :", list(self.terms.values())[0].unique_term)
+        
     def build_mult_terms_features(self, features=None):
+        #print('build_mult_terms_features의 self.sentences_obj 테스트 :', self.sentences_obj)
         list(map(lambda x: x.updateH(features=features), [cand for cand in self.candidates.values() if cand.isValid()]))
-
+        print('self.candidates 테스트 :', list(self.candidates.values())[0].H) # 점수 산출됨
+        
     def pre_filter(self, text):
         prog = re.compile("^(\\s*([A-Z]))")
         parts = text.split('\n')
