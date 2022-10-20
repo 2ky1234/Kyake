@@ -22,7 +22,7 @@ def jacc(s1, s2):   # input: str, str
         return print("please input the string type")
 
     if set1 == set2:    # 동일할 경우 1
-        return 1, print("Same Sentences")
+        return 1#, print("Same Sentences")
 
     union = set(set1).union(set(set2))  # 합집합
     # print("합집합 = ", union)
