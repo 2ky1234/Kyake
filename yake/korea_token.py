@@ -7,16 +7,14 @@ language = 'ko'
 path = 'yake/StopwordsList/'
 txt = '/stopwords_{}.txt'.format(language)
 
-
 try:
     f = open(path + txt, encoding='UTF-8')
     ExistStopwords = set(f.read().split())
+    f.close()
 except FileNotFoundError:
     ExistStopwords = [None]
 
-ExistStopwords = list(ExistStopwords)
-f.close()
-
+ExistStopwords = list(set(ExistStopwords))
 
 def edit_sentences(text):
 
@@ -121,7 +119,7 @@ def edit_josa(text):
 
         for i in text:    
             # 1. N + N
-            if komoran.pos(i)[0][1] in ['NNG','NNP','NNB','NR','NP']:
+            if komoran.pos(i)[0][1] in ['NNG','NNP','NR','NP']:
                 if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['NNG','NNP','NNB','NR','NP']:
                     nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])
                 else :
@@ -140,6 +138,7 @@ def edit_josa(text):
                     nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])
                 else:
                     nano.append(komoran.pos(i)[0][0])
+                    isstopword.append(komoran.pos(i)[0][0]) ### H E R E ! ! ! 
                     
             # # 4. MA stopword 처리
             # elif komoran.pos(i)[0][1] in ['MAG', 'MAJ']:
@@ -148,7 +147,7 @@ def edit_josa(text):
 
             # 5. XPN + N, XPN + V + XSV
             elif komoran.pos(i)[0][1] == 'XPN':
-                if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['NNG','NNP','NNB','NR','NP']:
+                if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['NNG','NNP','NR','NP']:
                     nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])
                 elif len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['VV', 'VA', 'VX', 'VC', 'XR']:
                     if len(komoran.pos(i))>2 and komoran.pos(i)[2][1] in ['XSV']:
@@ -157,6 +156,7 @@ def edit_josa(text):
                         nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])   
                 else :
                     nano.append(komoran.pos(i)[0][0])
+                    isstopword.append(komoran.pos(i)[0][0]) ### H E R E ! ! ! 
             
             # 6. XR + XSN
             elif komoran.pos(i)[0][1] == 'XR':
@@ -164,6 +164,7 @@ def edit_josa(text):
                     nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])
                 else:
                     nano.append(komoran.pos(i)[0][0])
+                    isstopword.append(komoran.pos(i)[0][0]) ### H E R E ! ! ! 
 
             # 7. NA가 나오면 뒤에 TOP10 조사 제거
             elif komoran.pos(i)[0][1] == 'NA':
@@ -202,12 +203,14 @@ def edit_josa(text):
             elif komoran.pos(i)[0][1] not in ['NNG','NNP','NNB','NR','NP', 'VV', 'VA', 'VX', 'VC', 'XPN', 'XR', 'MM', 'NA', 'SL', 'SH', 'SN', 'SF', 'SP', 'SS', 'SE', 'SO', 'SW']:
                 isstopword.append(komoran.pos(i)[0][0])
                 nano.append(komoran.pos(i)[0][0])
+                
             # 11. 나머지
             else :
                 nano.append(komoran.pos(i)[0][0])
 
         # stopword 업데이트
-        isstopword = list(set(isstopword))
+        isstopword = set(isstopword)
+        isstopword = list(isstopword)
 
         if os.path.exists(path + txt) == False:
             file = open(path+txt, 'w+', encoding='UTF-8')
@@ -223,10 +226,6 @@ def edit_josa(text):
 
         return nano
 
-
-    for x in range(len(text)):
-        for y in text[x]:
-            token_list.append(split_text(y))
     token_list = split_text(text)
 
     return token_list
