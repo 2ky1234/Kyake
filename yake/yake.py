@@ -99,13 +99,13 @@ class KeywordExtractor(object):
         self.windowsSize = windowsSize
         if dedupFunc == 'jaro_winkler' or dedupFunc == 'jaro':
             self.dedu_function = self.jaro
-            print('self.dedu_function jaro 테스트 :', self.dedu_function)
+            #print('self.dedu_function jaro 테스트 :', self.dedu_function)
         elif dedupFunc.lower() == 'sequencematcher' or dedupFunc.lower() == 'seqm':
             self.dedu_function = self.seqm
-            print('self.dedu_function seqm 테스트 :', self.dedu_function)
+            #print('self.dedu_function seqm 테스트 :', self.dedu_function)
         else:
             self.dedu_function = self.levs
-            print('self.dedu_function levs 테스트 :', self.dedu_function)
+            #print('self.dedu_function levs 테스트 :', self.dedu_function)
 
     def jaro(self, cand1, cand2):
         """
@@ -138,7 +138,7 @@ class KeywordExtractor(object):
                 return []
 
             text = text.replace('\n\t',' ')
-            print('self.stopword_set 출력 :',self.stopword_set)
+            #print('self.stopword_set 출력 :',self.stopword_set)
             dc = DataCore(text=text, stopword_set=self.stopword_set, windowsSize=self.windowsSize, n=self.n)
             # 형태소 원형 변경본 -> 원본으로 변경하는 작업 
             dc.build_single_terms_features(features=self.features)
@@ -178,11 +178,11 @@ class KeywordExtractor(object):
                 with open(self.resource_path, 'r+', encoding='utf-8') as f:
                     stopwordset = list(set( f.read().split("\n") ))
                     stopwordset.sort()
-                    print("stopword 리스트 test1: ", stopwordset)
+                    #print("stopword 리스트 test1: ", stopwordset)
                     f.truncate(0)
                     f.close()
 
-                print("stopword 리스트 test2: ", stopwordset)
+                #print("stopword 리스트 test2: ", stopwordset)
                 with open(self.resource_path, 'a+', encoding='utf-8') as ft:
                     for i in stopwordset:
                         ft.write(i)
