@@ -79,7 +79,10 @@ def edit_sentences(text):
         if len(s.strip()) > 1:
             text_value.append(s.split(' '))
 
-    # text_list = text.split()
+    # 딕셔너리(문서)의 각 리스트(문장)에 단어가 공백('')인 경우 해당 단어 자체를 제거  
+    for i,x in enumerate(text_value):
+        if x[-1] == '':
+            text_value[i] = x[:-1]
 
     return text_value
 
