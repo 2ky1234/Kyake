@@ -63,13 +63,12 @@ class DataCore(object):
         # 다른 py 파일에서 import로 활용하면 OK
         new_text = edit_sentences(text)
         self.raw_sentences_str = new_text
-        print('원본 split_sentences :', new_text)
+        #print('원본 split_sentences :', new_text)
         total_value = []
         for x in range(len(new_text)):
             total_value.append(edit_josa(new_text[x]))
         self.sentences_str = total_value
-
-        print('변경 후 결과 initial input : ',self.sentences_str)
+        #print('변경 후 결과 initial input : ',self.sentences_str)
         self.number_of_sentences = len(self.sentences_str)
         pos_text = 0
         block_of_word_obj = []
