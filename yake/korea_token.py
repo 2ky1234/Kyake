@@ -18,8 +18,11 @@ ExistStopwords = list(set(ExistStopwords))
 
 def edit_sentences(text):
 
-    SpecialToken = r"""#"$%&'‘“()*+,-/:;<=>[\]^_`{|}~"""
+    SpecialToken = r"""#(*+/:;<=[\^_₩{|~‘“""" # 띄우기
+    NotSpecialToken = r""",'"]}>)”’"""   # 붙이기
+                                # 여기에 없으면 유지
     exclude = set(SpecialToken)
+    unexclude = set(NotSpecialToken)
     # list로 주어지면 합쳐서 str 문자열로 전환 함수
     def list2str(TokenList):
         NewTokenList = []
@@ -36,6 +39,9 @@ def edit_sentences(text):
         for i in TokenList:
             if i in exclude:
                 TokenList = TokenList.replace(i, ' ')
+
+            elif i in unexclude:
+                TokenList = TokenList.replace(i, '')
 
         NewTokenList = TokenList.split()
         return NewTokenList
