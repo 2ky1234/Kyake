@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pke-u"
+version = "0.1.0"
+description = ""
+authors = ["Han_in9 <dlsrn0945@gmail.com>"]
+readme = "README.md"
+packages = [{include = "pke_u"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "^1.5.0"
+nltk = "^3.7"
+networkx = "^2.8.7"
+spacy = "^3.4.1"
+eunjeon = "^0.4.0"
+sklearn = "^0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
