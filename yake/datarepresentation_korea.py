@@ -78,11 +78,14 @@ class DataCore(object):
             sentence_obj_aux = []
             block_of_word_obj = []
             for (pos_sent, word) in enumerate(sentence):
+                #print('block_of_word_obj 출력11 :', block_of_word_obj) # 이 자리에는 원본이 없는게 생김
                 if len([c for c in word if c in self.exclude]) == len(word): # If the word is based on exclude chars
                     if len(block_of_word_obj) > 0:
                         sentence_obj_aux.append( block_of_word_obj )
                         block_of_word_obj = []
+                        
                 else:
+                    #print('block_of_word_obj 출력10 :', block_of_word_obj) # 이 자리에는 원본이 없는게 생김
                     tag = self.getTag(word, pos_sent)
                     term_obj = self.getTerm(word)
                     term_obj.addOccur(tag, sentence_id, pos_sent, pos_text)
@@ -94,21 +97,26 @@ class DataCore(object):
                             if block_of_word_obj[w][0] not in self.tagsToDiscard: 
                                 self.addCooccur(block_of_word_obj[w][2], term_obj)
                     #Generate candidate keyphrase list
-                    candidate = [ (tag, self.raw_sentences_str[sentence_id][pos_sent], term_obj) ]
+                    candidate = [ (tag, word, term_obj, self.raw_sentences_str[sentence_id][pos_sent]) ] # self.raw_sentences_str[sentence_id][pos_sent]
+                    #print('최초로 입력되는 word candidate 출력 :', candidate) # 한 단어씩 잘 들어감
                     #print('candidate 테스트 :',candidate,candidate[0][2].H) # H가 0인상태
                     # 이곳 변경해보자
+                    #print('cand = composed_word(candidate) 실행')
                     cand = composed_word(candidate)
                     #print('cand 테스트 :',cand.terms[0].unique_term) # H가 0인상태
                     self.addOrUpdateComposedWord(cand)           
                     word_windows = list(range( max(0, len(block_of_word_obj)-(n-1)), len(block_of_word_obj) ))[::-1]
                     for w in word_windows:
+                        #print('w 출력 :',w)
+                        #print('block_of_word_obj 출력 :', block_of_word_obj)
                         candidate.append(block_of_word_obj[w])
                         self.freq_ns[len(candidate)] += 1.
+                        #print('candidate[::-1]의 뜻은 :', candidate[::-1])
                         cand = composed_word(candidate[::-1])
                         self.addOrUpdateComposedWord(cand)
                     # Add term to the block of words' buffer
                     #print('word테스트 2번 :',word)
-                    block_of_word_obj.append( (tag, self.raw_sentences_str[sentence_id][pos_sent], term_obj) )
+                    block_of_word_obj.append( (tag, word, term_obj, self.raw_sentences_str[sentence_id][pos_sent]) ) # self.raw_sentences_str[sentence_id][pos_sent]
                     
                     #print('block_of_word_obj 테스트 :',block_of_word_obj,block_of_word_obj[0][2].H) # H가 0인 상태
             if len(block_of_word_obj) > 0:
@@ -149,7 +157,7 @@ class DataCore(object):
     def build_mult_terms_features(self, features=None):
         #print('build_mult_terms_features의 self.sentences_obj 테스트 :', self.sentences_obj)
         list(map(lambda x: x.updateH(features=features), [cand for cand in self.candidates.values() if cand.isValid()]))
-        print('self.candidates 테스트 :', list(self.candidates.values())[0].H) # 점수 산출됨
+        #print('self.candidates 테스트 :', list(self.candidates.values())[0].H) # 점수 산출됨
         
     def pre_filter(self, text):
         prog = re.compile("^(\\s*([A-Z]))")
@@ -228,6 +236,7 @@ class composed_word(object):
              return
         self.tags = set([''.join([ w[0] for w in terms ])])
         self.kw = ' '.join( [ w[1] for w in terms ] )
+        #print('self.kw 출력 :', self.kw)
         self.unique_kw = self.kw.lower()
         self.size = len(terms)
         self.terms = [ w[2] for w in terms if w[2] != None ]
@@ -235,7 +244,11 @@ class composed_word(object):
         self.integrity = 1.
         self.H = 1.
         self.start_or_end_stopwords = self.terms[0].stopword or self.terms[-1].stopword
-
+        #print('composed_word안의 self.terms 출력 :',self.terms)
+        #print('composed_word안의 terms 출력 :',terms)
+        self.origin_terms = ' '.join( [ w[3] for w in terms ] )
+        #print('self.origin_terms 출력 :', self.origin_terms)
+        
     def uptadeCand(self, cand):
         for tag in cand.tags:
             self.tags.add( tag )
@@ -393,7 +406,7 @@ class single_word(object):
         self.H = 0.0
         self.stopword = False
         self.G = graph
-
+        #self.origin_term = origin
         self.pagerank = 1.
 
     def updateH(self, maxTF, avgTF, stdTF, number_of_sentences, features=None):
