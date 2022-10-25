@@ -16,7 +16,7 @@ import os
 
 path = 'test.txt'
 text = []
-number = 102
+number = 90
 
 try:
     f = open(path, 'r+', encoding='UTF-8')
@@ -27,12 +27,11 @@ except FileNotFoundError:
 
 for i in range(len(lines)):
     text.append([lines[i].strip()])
-    
-    
+
 kw_extractor = yake.KeywordExtractor(lan='ko', top=100, COpy=True, Usage=False)
 #DataCore(text=text, stopword_set=[], windowsSize=1, n=3)
 keywords = kw_extractor.extract_keywords(''.join(text[number]))
-# keywords=pke_u_i9.extract_keywords(text[number])
+# keywords=pke_u_i9.extract_keywords(text[number][0])
 #print("원본: ", ''.join(text[number]), "\n")
 
 for kw in keywords[:50]:
