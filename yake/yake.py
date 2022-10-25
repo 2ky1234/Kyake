@@ -65,40 +65,66 @@ def isParagraphReDuplicated(dataset, COpy):    # input: list(tuple)
     When COPY parameter set True, return value will minimized.
     """
 
+    # dataset : [ ( float, <class> ), ( float, <class> ), ...,  ( float, <class> )]
+    # class   : < yake.datarepresentation_korea.composed_word object at 0x144c09940 >
+    # print(resultSet[0][1].origin_terms)   :   일회용품 사용이
+
     if COpy is True:
         copySet = dataset.copy()
     elif COpy is not True:
         copySet = dataset
 
-    for x in dataset:
-        if x not in copySet:
-            # print("해당 문장은 이미 제거되었습니다.")
+    for x in range(len(dataset)):
+        if dataset[x] in copySet:
             pass
-        for y in dataset:
-            # print("기준 문장: ",x, " : ","대상 문장: ",y)
-            if x == y:
-                pass
 
-            elif y not in copySet:
-                # print("해당 문장은 이미 제거되었습니다.")
+        for y in range(len(dataset)):
+            if x==y:
                 pass
-
+            elif dataset[y] in copySet:
+                pass
             else:
-                score = jacc_for_paragraph(x[0], y[0])  # "자존심 때문이라는 분석이"
-                if score >= 0.5:                        #       "때문이라는 분석이 나왔다."
-                    try:                                # 두 문단의 유사도가 0.5
-                        if x[1] > y[1]:
-                            # print("기준 문장: ",x, " : ","대상 문장: ",y)
-                            # print("유사도 발견.   {}   제거".format(x))
-                            copySet.remove(x)
+                score = jacc_for_paragraph(dataset[x][1].origin_terms, dataset[y][1].origin_terms)
+                if score >= 0.5:
+                    try:
+                        if dataset[x][1].H > dataset[y][1].H:
+                            copySet.remove(dataset[x])
                         else:
-                            # print("기준 문장: ",x, " : ","대상 문장: ",y)
-                            # print("유사도 발견.   {}   제거".format(y))
-                            copySet.remove(y)
+                            copySet.remove(dataset[y])
                     except ValueError:
-                        # print("이미 지워진 문장입니다. \n")
                         pass
     return copySet
+
+
+    # for x in dataset:
+    #     if x not in copySet:
+    #         # print("해당 문장은 이미 제거되었습니다.")
+    #         pass
+    #     for y in dataset:
+    #         # print("기준 문장: ",x, " : ","대상 문장: ",y)
+    #         if x == y:
+    #             pass
+
+    #         elif y not in copySet:
+    #             # print("해당 문장은 이미 제거되었습니다.")
+    #             pass
+
+    #         else:
+    #             score = jacc_for_paragraph(x[0], y[0])  # "자존심 때문이라는 분석이"
+    #             if score >= 0.5:                        #       "때문이라는 분석이 나왔다."
+    #                 try:                                # 두 문단의 유사도가 0.5
+    #                     if x[1] > y[1]:
+    #                         # print("기준 문장: ",x, " : ","대상 문장: ",y)
+    #                         # print("유사도 발견.   {}   제거".format(x))
+    #                         copySet.remove(x)
+    #                     else:
+    #                         # print("기준 문장: ",x, " : ","대상 문장: ",y)
+    #                         # print("유사도 발견.   {}   제거".format(y))
+    #                         copySet.remove(y)
+    #                 except ValueError:
+    #                     # print("이미 지워진 문장입니다. \n")
+    #                     pass
+    # return copySet
 
 def isWordReDuplicated(dataset, COpy):    # input: list(tuple)
     """
@@ -148,6 +174,10 @@ def isUniqueText(dataset, COpy, Usage):
     
     examples) '한' '한 나라' '나라의' '한 나라의 대통령' -> '한 나라' '한 나라의 대통령'
     """
+    # dataset : [ ( float, <class> ) ]
+    # class   : <  >
+    # print(resultSet[0][1].origin_terms)   :   일회용품 사용이
+
     if Usage is True:
         if COpy is True:
             copySet = dataset.copy()
@@ -351,12 +381,16 @@ class KeywordExtractor(object):
                         ft.write('\n')
                     ft.close()
 
-            beforeReturnSet = isUniqueText([(cand.kw,h) for (h,cand) in resultSet], self.COpy, self.Usage) # [(cand.kw,h) for (h,cand) in resultSet]
-            middleReturnSet = isUniqueSentence(beforeReturnSet, self.COpy, self.Usage)
-            afterReturnSet = isParagraphReDuplicated(middleReturnSet, self.COpy)
-            finalReturnSet = isWordReDuplicated(afterReturnSet, self.COpy)
+            # beforeReturnSet = isUniqueText(resultSet, self.COpy, self.Usage) # [(cand.kw,h) for (h,cand) in resultSet]
+            # middleReturnSet = isUniqueSentence(beforeReturnSet, self.COpy, self.Usage)
+            # afterReturnSet = isParagraphReDuplicated(middleReturnSet, self.COpy)
+            # finalReturnSet = isWordReDuplicated(afterReturnSet, self.COpy)
+            # print(beforeReturnSet)
+            # print(resultSet[0][1]) # .origin_terms)
 
-            return finalReturnSet
+            testset = isParagraphReDuplicated(resultSet, self.COpy)
+
+            return [(cand.origin_terms,h) for (h,cand) in testset]  # [(cand.kw, h) for (h,cand) in resultSet]
 
         except Exception as e:
             print(f"Warning! Exception: {e} generated by the following text: '{text}' ")
