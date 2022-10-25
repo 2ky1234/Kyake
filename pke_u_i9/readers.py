@@ -425,8 +425,8 @@ class RawTextReader(Reader):  # raw text 리더 (언어에 따라 파서)
                             # ex) 바로 위의 절차를 진행한 후 spacy_pos리스트로 [('LG', 'SL')]가 나오는데 나중에 이를 활용하여 (6.txt이용)
                             #     => TF : [['LG전자'], ['LG전자'], ['LG전자'], ['LG']] => TF를 할때 'LG전자'에 해당하는 것만 count해야하지만 "LG"까지 count한다.
                             #     이러한 상황을 막기위해 수정해 준다. -> [('LG', 'SL'), ('전자', 'NNG'), ('가', 'JKS')] -> [('LG전자', 'NNP'), ('가', 'JKS')]
-                            elif (spacy_pos[0][1] == "SL" and spacy_pos[1][1] == "NNG") or (
-                                    spacy_pos[0][1] == "NNG" and spacy_pos[1][1] == "SL"):
+                            elif (spacy_pos[0][1] == "SL" and spacy_pos[0][1].startswith('N')) or (
+                                    spacy_pos[0][1].startswith('N') and spacy_pos[1][1] == "SL"):
 
                                 spacy_pos_list = []
                                 for i in range(0, len(spacy_pos), 1):
