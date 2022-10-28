@@ -230,9 +230,9 @@ def delLowerGrams(dataset, COpy):       # dataset: [(float, <class>), (float, <c
         
 class KeywordExtractor(object):
 
-    def __init__(self, lan="ko", n=3, dedupLim=0.9, dedupFunc='seqm', windowsSize=1, top=20, features=None, stopwords=None, COpy=True, Usage=False):
+    def __init__(self, lan="ko", n=[1,2,3], dedupLim=0.9, dedupFunc='seqm', windowsSize=1, top=20, stoplen = 2, features=None, stopwords=None, COpy=True, Usage=False):
         self.lan = lan
-
+        self.stoplen = stoplen
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
         local_path = os.path.join("StopwordsList", "stopwords_%s.txt" % lan[:2].lower())
@@ -303,7 +303,7 @@ class KeywordExtractor(object):
 
             text = text.replace('\n\t',' ')
             # print('self.stopword_set 출력 :',self.stopword_set)
-            dc = DataCore(text=text, stopword_set=self.stopword_set, windowsSize=self.windowsSize, n=self.n)
+            dc = DataCore(text=text, stopword_set=self.stopword_set, windowsSize=self.windowsSize, n=self.n, stoplen = self.stoplen)
             # 형태소 원형 변경본 -> 원본으로 변경하는 작업 
             dc.build_single_terms_features(features=self.features)
             # 원본은 dc.initial_sentences_str에 담겨있음 

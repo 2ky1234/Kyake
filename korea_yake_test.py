@@ -28,7 +28,7 @@ except FileNotFoundError:
 for i in range(len(lines)):
     text.append([lines[i].strip()])
 
-kw_extractor = yake.KeywordExtractor(lan='ko', top=100, COpy=True, Usage=False)
+kw_extractor = yake.KeywordExtractor(n=[1,4],top=100, stoplen=2, windowsSize=1, COpy=True, Usage=False)
 #DataCore(text=text, stopword_set=[], windowsSize=1, n=3)
 keywords = kw_extractor.extract_keywords(''.join(text[number]))
 # keywords=pke_u_i9.extract_keywords(text[number][0])

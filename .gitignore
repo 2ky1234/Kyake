@@ -1,3 +1,4 @@
 # pyc file dont upload
 *.pyc
 .env
+test.txt

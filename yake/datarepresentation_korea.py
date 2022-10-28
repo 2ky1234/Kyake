@@ -15,7 +15,7 @@ STOPWORD_WEIGHT = 'bi'
 
 class DataCore(object):
     
-    def __init__(self, text, stopword_set, windowsSize, n, tagsToDiscard = set(['u', 'd']), exclude = set(string.punctuation)):
+    def __init__(self, text, stopword_set, windowsSize, n, stoplen, tagsToDiscard = set(['u', 'd']), exclude = set(string.punctuation)):
         self.number_of_sentences = 0 # 해결
         self.number_of_words = 0 # 해결
         self.terms = {}
@@ -26,11 +26,12 @@ class DataCore(object):
         self.exclude = exclude
         self.tagsToDiscard = tagsToDiscard
         self.freq_ns = {}
-        for i in range(n):
+        for i in range(n[-1]):# 원래 n
             self.freq_ns[i+1] = 0.
         self.stopword_set = stopword_set
         self.raw_sentences_str = [] # raw값으로 n-gram 만들기 위한 변수
-        self._build(text, windowsSize, n)
+        self.stoplen = stoplen
+        self._build(text, windowsSize, n) # 원래 n
 
     def build_candidate(self, candidate_string):
         sentences_str = [w for w in split_contractions(web_tokenizer(candidate_string.lower())) if not (w.startswith("'") and len(w) > 1) and len(w) > 0]
@@ -87,7 +88,7 @@ class DataCore(object):
                 else:
                     #print('block_of_word_obj 출력10 :', block_of_word_obj) # 이 자리에는 원본이 없는게 생김
                     tag = self.getTag(word, pos_sent)
-                    term_obj = self.getTerm(word)
+                    term_obj = self.getTerm(word, stoplen = self.stoplen)
                     term_obj.addOccur(tag, sentence_id, pos_sent, pos_text)
                     pos_text += 1                                         
                     #Create co-occurrence matrix
@@ -104,8 +105,10 @@ class DataCore(object):
                     #print('cand = composed_word(candidate) 실행')
                     cand = composed_word(candidate)
                     #print('cand 테스트 :',cand.terms[0].unique_term) # H가 0인상태
-                    self.addOrUpdateComposedWord(cand)           
-                    word_windows = list(range( max(0, len(block_of_word_obj)-(n-1)), len(block_of_word_obj) ))[::-1]
+                    if len(cand.kw.split()) in n:
+                        self.addOrUpdateComposedWord(cand)           
+                    word_windows = list(range( max(0, len(block_of_word_obj)-(n[-1]-1)), len(block_of_word_obj) ))[::-1]
+                    #print('word_windows 테스트 :', word_windows)
                     for w in word_windows:
                         #print('w 출력 :',w)
                         #print('block_of_word_obj 출력 :', block_of_word_obj)
@@ -113,7 +116,9 @@ class DataCore(object):
                         self.freq_ns[len(candidate)] += 1.
                         #print('candidate[::-1]의 뜻은 :', candidate[::-1])
                         cand = composed_word(candidate[::-1])
-                        self.addOrUpdateComposedWord(cand)
+                        #print('candidate[::-1]이후 cand :',cand.kw)
+                        if len(cand.kw.split()) in n:
+                            self.addOrUpdateComposedWord(cand)
                     # Add term to the block of words' buffer
                     #print('word테스트 2번 :',word)
                     block_of_word_obj.append( (tag, word, term_obj, self.raw_sentences_str[sentence_id][pos_sent]) ) # self.raw_sentences_str[sentence_id][pos_sent]
@@ -186,7 +191,7 @@ class DataCore(object):
                 return "n"
         return "p"
 
-    def getTerm(self, str_word, save_non_seen=True):
+    def getTerm(self, str_word, stoplen, save_non_seen=True):
         unique_term = str_word.lower()
         simples_sto = unique_term in self.stopword_set
         
@@ -203,7 +208,7 @@ class DataCore(object):
         for pontuation in self.exclude:
             simples_unique_term = simples_unique_term.replace(pontuation, '')
         # until here
-        isstopword = simples_sto or unique_term in self.stopword_set or len(simples_unique_term) < 2 # 3 -> 2 stopword char length cut
+        isstopword = simples_sto or unique_term in self.stopword_set or len(simples_unique_term) < stoplen # 3 -> 2 stopword char length cut
         #print('isstopword 테스트 :', isstopword) # TF로 반환
         term_id = len(self.terms)
         term_obj = single_word(unique_term, term_id, self.G)
@@ -391,6 +396,7 @@ class single_word(object):
 
     def __init__(self, unique, idx, graph):
         self.unique_term = unique
+        self.WLeng = len(unique) # 해당 단어의 길이 추가
         self.id = idx
         self.tf = 0.
         self.WFreq = 0.0
@@ -426,13 +432,16 @@ class single_word(object):
         if features == None or "WSpread" in features:
             self.WSpread = len(self.occurs) / number_of_sentences
         
+        if features == None or "WLeng" in features:
+            self.WLpoint = 0 if self.WLeng <= 2 else 0 if self.WLeng == 3 else 0  # else 뒤에 1,2 를 원하는 파라미터로 설정하면됨
+        
         if features == None or "WCase" in features:
             self.WCase = max(self.tf_a, self.tf_n) / (1. + math.log(self.tf))
         
         if features == None or "WPos" in features:
             self.WPos = math.log( math.log( 3. + np.median(list(self.occurs.keys())) ) )
 
-        self.H = (self.WPos * self.WRel) / (self.WCase + (self.WFreq / self.WRel) + (self.WSpread / self.WRel))
+        self.H = (self.WPos * self.WRel) / (self.WLpoint + self.WCase + (self.WFreq / self.WRel) + (self.WSpread / self.WRel)) # 
         
     @property
     def WDR(self):
