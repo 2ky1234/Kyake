@@ -10,27 +10,7 @@ from .Levenshtein import Levenshtein
 #from .datarepresentation import DataCore
 from .datarepresentation_korea import DataCore
 
-def jacc_for_word(s1, s2):
-    """
-    Jaccard Similarity Function.
-    In this source, use 2 parameter via word.
-    Return value is score of Jaccard Similarity.
-    """
-    if type(s1) and type(s2) == str:
-        set1, set2 = set(list(''.join(s1.split()))), set(list(''.join(s2.split())))
-    else:
-        return print("please input the string type")
-
-    if set1 == set2:
-        return 1    # 동일할 경우 1
-
-    union = set(set1).union(set(set2))                  # 합집합
-    intersection = set(set1).intersection(set(set2))    # 교집합
-    jaccardScore = len(intersection)/len(union)         # 자카드 유사도
-
-    return jaccardScore
-
-def jacc_for_paragraph(s1, s2):   # input: str, str
+def jacc(s1, s2):   # input: str, str
     """
     Jaccard Similarity Function.
     In this source, use 2 parameter via paragraph.
@@ -50,187 +30,115 @@ def jacc_for_paragraph(s1, s2):   # input: str, str
 
     return jaccardScore
 
-def isParagraphReDuplicated(dataset, COpy):    # dataset: [(float, <class>), (float, <class>), ..., (float, <class>)]
+def isUniqueText(dataset, WG):    # dataset: [(float, <class>), (float, <class>), ..., (float, <class>)]
     """
     Extense from Jaccard Similarity Function.
-    In this function, use 2 parameter, dataset and COpy(T or F), dataset is composed of tuple.
+    In this function, use 2 parameter, dataset and WG(None or True or False), dataset is composed of tuple.
     Return value is set of dataset composed of tuple, except duplicated things.
 
-    Setting the COPY parameter to True optimizes the return value.
+    WG : None
+    Function don't copy dataset, and erase words based on Jacard similarity if the target is in low rank.
+
+    WG : False
+    Function to erase words based on Jacard similarity if the target is in low rank.
+
+    WG : True
+    Function that is not cleared if it is a subdependent.
     """
-    
-    if COpy is True:
-        copySet = dataset.copy()
-    elif COpy is False:
-        copySet = dataset
+
+    if WG is None:
+        copyset = dataset
+    else:
+        copyset = dataset.copy()
 
     for x in dataset:
-        if x not in copySet:
+        if x not in copyset:
             continue
         for y in dataset:
             if x==y:
                 continue
-            elif y not in copySet:
+            elif y not in copyset:
                 continue
-            else:
-                score = jacc_for_paragraph(x[1].kw, y[1].kw)
-                if score >= 0.5:
+            elif (' ' not in x[1].kw) or (' ' not in y[1].kw) or (len(x[1].kw.split()) < len(y[1].kw.split())):
+                continue
+            elif WG is False or None:                               # WG(word-gram)가 False면 (디폴트값)
+                score = jacc(x[1].kw, y[1].kw)        # 자카드 유사도 실행
+                if score >= 0.5:                                    # 기준 문장보다 하위 티어의 경우에만 자카드 검증 실행됨
                     try:
                         if x[1].H > y[1].H:
-                            copySet.remove(x)
+                            copyset.remove(x)
                         else:
-                            copySet.remove(y)
+                            copyset.remove(y)
                     except ValueError:
                         continue
-    return copySet
+            elif WG is True:                                        # WG(word-gram)가 True면
+                if (len(x[1].kw.split()) == len(y[1].kw.split())):  # 하위 그램은 보존함
+                    score = jacc(x[1].kw, y[1].kw)
+                    if score >= 0.5:
+                        try:
+                            if x[1].H > y[1].H:
+                                copyset.remove(x)
+                            else:
+                                copyset.remove(y)
+                        except ValueError:
+                            continue
+    return copyset
 
-def isWordReDuplicated(dataset, COpy):    # dataset: [(float, <class>), (float, <class>), ..., (float, <class>)]
+def isReDuplicated(dataset, WG, ReDup):     # dataset: [(float, <class>), (float, <class>), ..., (float, <class>)]
     """
-    Extense from Jaccard Similarity Function.
-    In this function, use 2 parameter, dataset and COpy(T or F), dataset is composed of tuple.
-    Return value is set of dataset composed of tuple, except duplicated things.
+    ReDup : None
+    Function do nothing.
 
-    Setting the COPY parameter to True optimizes the return value.
+    ReDup : False
+    Function that erases words that belong to a duplicate when the target is in low rank.
+
+    ReDup : True
+    Function that removes a word from a data set if it contains a phrase.
     """
 
-    if COpy is True:
-        copySet = dataset.copy()
-    elif COpy is False:
-        copySet = dataset
+    if ReDup is None:
+        return dataset
+
+    if WG is None:
+        copyset = dataset
+    else:
+        copyset = dataset.copy()
 
     for x in dataset:
-        if x not in copySet:
+        if x not in copyset:        # x: (float, <class>)
             continue
         for y in dataset:
             if x==y:
                 continue
-            elif y not in copySet:
-                continue
-            else:
-                score = jacc_for_paragraph(x[1].kw, y[1].kw)
-                if score >= 0.5:
-                    try:
-                        if x[1].H > y[1].H:
-                            copySet.remove(x)
-                        else:
-                            copySet.remove(y)
-                    except ValueError:
-                        continue
-    return copySet
-
-
-def isUniqueText(dataset, COpy, Usage):     # dataset: [(float, <class>), (float, <class>), ..., (float, <class>)]
-    """
-    Function that removes a single word from the dataset if a phrase containing the word exists.
-    Set Usage parameter True, when want to use this function.
-    
-    examples) '한' '한 나라' '나라의' '한 나라의 대통령' -> '한 나라' '한 나라의 대통령'
-    """
-
-    if Usage is True:
-        if COpy is True:
-            copySet = dataset.copy()
-        elif COpy is False:
-            copySet = dataset
-
-        for x in dataset:
-            if x not in copySet:
-                continue
-            if ' ' in x[1].kw:
-                continue
-            for y in dataset:
-                if x == y:
-                    continue
-                elif y not in copySet:
-                    continue
-                elif ' ' not in y[1].kw:
-                    continue
-                else:
-                    try:
-                        if x[1].kw in y[1].kw.split():
-                            copySet.remove(x)
-                    except ValueError:
-                        continue
-        return copySet
-    else:
-        return dataset
-
-def isUniqueSentence(dataset, COpy, Usage):     # dataset: [(float, <class>), (float, <class>), ..., (float, <class>)]
-    """
-    Function that deletes a phrase from the dataset if a phrase containing the phrase exists.
-    Set Usage parameter True, when want to use this function.
-
-    examples) '한 나라' '나라의' '한 나라 국민' -> '나라의' '한 나라 국민'
-    """
-
-    if Usage is True:
-        if COpy is True:
-            copySet = dataset.copy()
-        elif COpy is False:
-            copySet = dataset
-
-        for x in dataset:
-            if x not in copySet:
-                continue
-            if ' ' in x[1].kw:
-                continue
-            for y in dataset:
-                if x == y:
-                    continue
-                elif y not in copySet:
-                    continue
-                elif ' ' not in y[1].kw:
-                    continue
-                else:
-                    try:
-                        if x[1].kw in y[1].kw.split():
-                            copySet.remove(x)
-                    except ValueError:
-                        continue
-        return copySet
-    else:
-        return dataset
-
-def delLowerGrams(dataset, COpy):       # dataset: [(float, <class>), (float, <class>), ..., (float, <class>)]
-    """
-    Function that erases words belonging to an intersection when the purge target ranks lower.
-
-    """
-
-    if COpy is True:
-        copySet = dataset.copy()
-    elif COpy is False:
-        copySet = dataset
-
-    for x in dataset:
-        if x not in copySet:
-            continue
-        for y in dataset:
-            if x == y:
-                continue
-            elif y not in copySet:
+            elif y not in copyset:
                 continue
             else:
                 try:
                     amount = 0
-                    set1 = x[1].kw.split()
-                    set2 = y[1].kw.split()
-                    for i in set2:
-                        if (' ' not in x[1].kw) or (len(set1) <= len(set2)):
+                    for z in y[1].kw.split():
+                        if (' ' not in x[1].kw) or (len(x[1].kw.split()) < len(y[1].kw.split())):
                             continue
-                        if x[0] > y[0]:
-                            continue
-                        if i in set1:
-                            amount = amount + 1
-                        if amount == len(set2):
-                            copySet.remove(y)
+
+                        if ReDup==False:
+                            if x[0] > y[0]:
+                                continue
+                            if z in x[1].kw.split():
+                                amount = amount + 1
+                            if amount == len(y[1].kw.split()):
+                                copyset.remove(y)
+
+                        if ReDup==True:
+                            if z in x[1].kw.split():
+                                amount = amount + 1
+                            if amount == len(y[1].kw.split()):
+                                copyset.remove(y)
                 except ValueError:
                     continue
-    return copySet
+    return copyset
         
 class KeywordExtractor(object):
 
-    def __init__(self, lan="ko", n=[1,2,3], dedupLim=0.9, dedupFunc='seqm', windowsSize=1, top=20, stoplen = 2, features=None, stopwords=None, COpy=True, Usage=False):
+    def __init__(self, lan="ko", n=[1,2,3], dedupLim=0.9, dedupFunc='seqm', windowsSize=1, top=20, stoplen = 2, features=None, stopwords=None, WG=False, ReDup=False):
         self.lan = lan
         self.stoplen = stoplen
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -258,8 +166,8 @@ class KeywordExtractor(object):
         self.top = top
         self.dedupLim = dedupLim
         self.features = features
-        self.COpy = COpy
-        self.Usage = Usage
+        self.WG = WG
+        self.ReDup = ReDup
         self.windowsSize = windowsSize
         if dedupFunc == 'jaro_winkler' or dedupFunc == 'jaro':
             self.dedu_function = self.jaro
@@ -364,32 +272,12 @@ class KeywordExtractor(object):
                         ft.write('\n')
                     ft.close()
 
-            ReturnSet = isUniqueText(resultSet, self.COpy, self.Usage)    # [(cand.kw,h) for (h,cand) in resultSet]
-            ReturnSet = isUniqueSentence(ReturnSet, self.COpy, self.Usage)
-            ReturnSet = isParagraphReDuplicated(ReturnSet, self.COpy)
-            ReturnSet = isWordReDuplicated(ReturnSet, self.COpy)
-            ReturnSet = delLowerGrams(ReturnSet, self.COpy)
+            FirstReturnSet = isReDuplicated(resultSet, self.WG, self.ReDup)    # [(cand.kw,h) for (h,cand) in resultSet]
+            SecondReturnSet = isUniqueText(FirstReturnSet, self.WG)
 
-            # testset = isParagraphReDuplicated(resultSet, self.COpy)
-
-            # ## [(cand.origin_terms,h) for (h,cand) in RealfinalReturnSet]
-            # testlist = []
-            # returnlist = []
-            # for (h,cand) in RealfinalReturnSet:
-            #     testlist.append((cand.origin_terms,h))
-
-            # for i in testlist:
-            #     testtxt = i[0].split()
-            #     for l in [list]:
-            #         if len(testtxt) == l:
-            #             returnlist.append(testtxt)
-            #     # print("test: ",i)
-            # return returnlist
-
-            return ReturnSet  # [(cand.kw, h) for (h,cand) in resultSet]
+            return [(cand.kw, h) for (h,cand) in SecondReturnSet]
 
         except Exception as e:
             print(f"Warning! Exception: {e} generated by the following text: '{text}' ")
             return []
-        
-        
+
