@@ -135,9 +135,16 @@ def edit_josa(text):
                     nano.append(komoran.pos(i)[0][0])
 
             # 2. V + XSV
-            elif komoran.pos(i)[0][1] in ['VV', 'VA', 'VX', 'VC', 'XR']:
-                if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] == 'XSV':
-                    nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])
+            elif komoran.pos(i)[0][1] in ['VV', 'VA', 'VX', 'VC']:
+                if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['ETN']:
+                    if komoran.pos(i)[1][0] not in ['ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ',          # 종성 리스트
+                                                    'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']:    # ETN이 종성이면 동사만
+                        if len(komoran.pos(i))>2 and komoran.pos(i)[2][1] in ['NNG']:       # VV+ETN+NNG : 걷기운동(걷/VV+기/ETN+운동/NNG), 돕기운동(돕/VV+기/ETN+운동/NNG)
+                            nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0] + komoran.pos(i)[2][0])
+                        else:
+                            nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])        # VV+ETN : 옮기기(옮기/VV+기/ETN), 없음(없/VA+음/ETN)
+                    else:
+                        nano.append(komoran.pos(i)[0][0])                                   # VV+ETN : 알림(알리/VV+ㅁ/ETN), 부러움(부럽/VA+ㅁ/ETN)
                 else:
                     nano.append(komoran.pos(i)[0][0])
                     
@@ -159,8 +166,11 @@ def edit_josa(text):
                 if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['NNG','NNP','NR','NP']:
                     nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])
                 elif len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['VV', 'VA', 'VX', 'VC', 'XR']:
-                    if len(komoran.pos(i))>2 and komoran.pos(i)[2][1] in ['XSV']:
-                        nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0] + komoran.pos(i)[2][0])
+                    if len(komoran.pos(i))>2 and komoran.pos(i)[2][1] in ['ETN']:
+                        if len(komoran.pos(i))>3 and komoran.pos(i)[3][1] in ['NNG']:
+                            nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0] + komoran.pos(i)[2][0] + komoran.pos(i)[3][0])
+                        else :
+                            nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0] + komoran.pos(i)[2][0])
                     else :
                         nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])   
                 else :
@@ -169,7 +179,7 @@ def edit_josa(text):
             
             # 6. XR + XSN
             elif komoran.pos(i)[0][1] == 'XR':
-                if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] == 'XSN':
+                if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['XSN', 'NNG']:
                     nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])
                 else:
                     nano.append(komoran.pos(i)[0][0])
@@ -184,10 +194,13 @@ def edit_josa(text):
                 if len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['NNG','NNP','NNB','NR','NP']:
                     nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])       
                 elif len(komoran.pos(i))>1 and komoran.pos(i)[1][1] in ['VV', 'VA', 'VX', 'VC', 'XR']:
-                    if len(komoran.pos(i))>2 and komoran.pos(i)[2][1] in ['XSV']:
-                        nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0] + komoran.pos(i)[2][0])
+                    if len(komoran.pos(i))>2 and komoran.pos(i)[2][1] in ['ETN']:
+                        if len(komoran.pos(i))>3 and komoran.pos(i)[3][1] in ['NNG']:
+                            nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0] + komoran.pos(i)[2][0] + komoran.pos(i)[3][0])
+                        else :
+                            nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0] + komoran.pos(i)[2][0])
                     else :
-                        nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])    
+                        nano.append(komoran.pos(i)[0][0] + komoran.pos(i)[1][0])      
                 else :
                     nano.append(komoran.pos(i)[0][0])
 
