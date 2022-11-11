@@ -4,8 +4,9 @@ komoran = Komoran()
 
 # stopword.txt 읽어오기 위한 path 및 파일이름
 language = 'ko'
-path = 'yake/StopwordsList/'
-txt = '/stopwords_{}.txt'.format(language)
+# path = 'yake/StopwordsList/'
+path = '../yake/StopwordsList/'
+txt = 'stopwords_{}.txt'.format(language)
 
 try:
     f = open(path + txt, encoding='UTF-8')
@@ -18,7 +19,7 @@ ExistStopwords = list(set(ExistStopwords))
 
 def edit_sentences(text):
 
-    SpecialToken = r"""#(*+/:;<=[\^_₩{|~‘“""" # 띄우기
+    SpecialToken = r"""#(*+/\:;<=[^_₩{|~‘“""" # 띄우기
     NotSpecialToken = r""",'"]}>)”’"""   # 붙이기
                                 # 여기에 없으면 유지
     exclude = set(SpecialToken)

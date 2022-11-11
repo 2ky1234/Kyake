@@ -6,7 +6,7 @@ from rouge_metric import Rouge
 class RougeScorer:
     def __init__(self):
         self.rouge_evaluator = Rouge(
-            metrics=["rouge-n", "rouge-l"],
+            metrics=["rouge-n", "rouge-l", "rouge-w"],
             max_n=2,
             limit_length=True,
             length_limit=1000,
@@ -58,4 +58,4 @@ class RougeScorer:
             output.write(str_scores)
 
     def format_rouge_scores(self, scores):      # score를 포멧에 맞춰 나열하는 함수?
-    	return scores["rouge-1"]["f"], scores["rouge-2"]["f"], scores["rouge-l"]["f"],
+    	return scores["rouge-1"]["f"], scores["rouge-2"]["f"], scores["rouge-l"]["f"], scores["rouge-w"]["f"]
